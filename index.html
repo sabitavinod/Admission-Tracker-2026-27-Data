@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meghe Group · Admission Tracker 2026–27</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root {
+    --maroon: #6e1423;
+    --maroon-dark: #4a0d16;
+    --gold: #caa051;
+    --cream: #f7f3ec;
+    --ink: #2a2420;
+    --muted: #7c736a;
+    --green: #2f7d52;
+    --red: #b23a2f;
+    --amber: #b3791f;
+    --border: #e3dccf;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: var(--cream); color: var(--ink); }
+  header { background: var(--maroon); color: #f8ecd9; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  header h1 { font-size: 18px; margin: 0; letter-spacing: 0.2px; }
+  header .sub { font-size: 11px; color: #e3c89a; margin-top: 2px; }
+  header .right { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .btn { background: var(--maroon); color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn:hover { background: var(--maroon-dark); }
+  .btn.secondary { background: #fff; color: var(--maroon); border: 1px solid var(--border); }
+  .btn.secondary:hover { background: var(--cream); }
+  .btn.link { background: none; color: var(--gold); text-decoration: underline; padding: 0; font-weight: 600; }
+  .btn.danger { background: none; color: var(--red); padding: 2px 4px; }
+  main { padding: 18px; max-width: 1180px; margin: 0 auto; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+  .card h2 { margin: 0 0 4px; font-size: 17px; }
+  .card .hint { color: var(--muted); font-size: 12.5px; margin: 0 0 14px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+  label { display: block; font-size: 11.5px; font-weight: 700; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+  input, select { border: 1px solid var(--border); border-radius: 6px; padding: 7px 9px; font-size: 13.5px; font-family: inherit; background: #fff; color: var(--ink); }
+  input[type=number] { width: 90px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; color: var(--muted); font-weight: 700; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 1px solid var(--border); padding: 7px 8px; }
+  td { padding: 7px 8px; border-bottom: 1px solid #f1ece1; }
+  tr.total td { font-weight: 700; border-top: 2px solid var(--ink); border-bottom: none; }
+  .num { text-align: right; }
+  .pos { color: var(--green); font-weight: 600; }
+  .neg { color: var(--red); font-weight: 600; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .tab-btn { background: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--ink); }
+  .tab-btn.active { background: var(--maroon); color: #fff; border-color: var(--maroon); }
+  .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; }
+  .class-box { border: 1px solid var(--border); border-radius: 8px; padding: 9px; }
+  .class-box .cn { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
+  .class-box input { width: 100%; }
+  .field-pair { display: flex; gap: 6px; margin-top: 4px; }
+  .field-pair div { flex: 1; }
+  .field-pair span.fl { font-size: 9.5px; color: var(--muted); display: block; margin-bottom: 2px; }
+  .toast { position: fixed; bottom: 18px; right: 18px; background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 7px; font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,0.2); z-index: 60; }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(40,30,20,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
+  .modal-card { background: #fff; border-radius: 12px; padding: 26px; width: 100%; max-width: 360px; position: relative; }
+  .modal-close { position: absolute; top: -12px; right: -12px; background: #fff; border-radius: 50%; width: 28px; height: 28px; border: 1px solid var(--border); cursor: pointer; font-size: 14px; }
+  .error-text { color: var(--red); font-size: 12.5px; margin: 6px 0; }
+  .chart-wrap { position: relative; height: 280px; margin-bottom: 16px; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+  .pill.green { background: #e3f1e8; color: var(--green); }
+  .pill.amber { background: #f7ecd9; color: var(--amber); }
+  .pill.red { background: #f6e2df; color: var(--red); }
+  .small-muted { color: var(--muted); font-size: 12px; }
+  .reveal-btn { background: none; border: none; cursor: pointer; font-family: monospace; font-size: 12px; color: var(--ink); }
+  .setup-banner { background: #fdf1e3; border: 1px solid var(--gold); border-radius: 10px; padding: 16px; margin-bottom: 16px; font-size: 13.5px; }
+  ::placeholder { color: #b9b0a3; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Meghe Group · Admission Tracker</h1>
+    <div class="sub">Academic Year 2026–27</div>
+  </div>
+  <div class="right" id="headerRight"></div>
+</header>
+
+<main id="app"></main>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+/* ---------------- CONFIG ---------------- */
+const STATE = {
+  apiUrl: 'https://script.google.com/macros/s/AKfycbyOpCtAD8R3KWalcRJ7c0SaFRwK1Rs3wUeQqz566a-Q9bu2fR8wkFBEFUMRKyp4if6k/exec',
+  user: null,
+  schoolClasses: {},
+  tcReasons: [],
+  targets: [],
+  opFeeders: [],
+  entries: [],
+  loaded: false,
+  loginOpen: false,
+  loginError: '',
+  filters: { school: 'all', metric: 'NA', dateFrom: '', dateTo: '' },
+  adminTab: 'overview',
+  charts: {}
+};
+
+/* ---------------- API ---------------- */
+async function apiGet(params) {
+  const url = STATE.apiUrl + '?' + new URLSearchParams(params).toString();
+  const res = await fetch(url);
+  return res.json();
+}
+async function apiPost(body) {
+  const res = await fetch(STATE.apiUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+async function loadBootstrap() {
+  const data = await apiGet({ action: 'bootstrap' });
+  if (!data.ok) throw new Error(data.error || 'Failed to load data.');
+  STATE.schoolClasses = data.schoolClasses;
+  STATE.tcReasons = data.tcReasons;
+  STATE.targets = data.targets;
+  STATE.opFeeders = data.opFeeders;
+  STATE.entries = data.entries;
+  STATE.loaded = true;
+}
+
+/* ---------------- HELPERS ---------------- */
+function schoolList() { return Object.keys(STATE.schoolClasses); }
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function fmt(n) { n = Number(n) || 0; return Math.round(n).toLocaleString('en-IN'); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function showToast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.getElementById('toastRoot').appendChild(el);
+  setTimeout(() => el.remove(), 2400);
+}
+function opApplicableSchools() { return [...new Set(STATE.opFeeders.map(f => f.destSchool))]; }
+function rteApplicableClasses(school) {
+  return [...new Set(STATE.targets.filter(t => t.school === school && t.metric === 'RTE').map(t => t.class))];
+}
+function sumEntries(school, cls, metric, dateTo) {
+  return STATE.entries
+    .filter(e => e.school === school && e.class === cls && e.metric === metric && (!dateTo || e.date <= dateTo))
+    .reduce((s, e) => s + (Number(e.count) || 0), 0);
+}
+function computeMetricForSchool(school, metric, dateTo) {
+  if (metric === 'OP') {
+    const feeders = STATE.opFeeders.filter(f => f.destSchool === school);
+    const target = feeders.reduce((s, f) => s + (Number(f.kg2Batch) || 0), 0);
+    const baseline = feeders.reduce((s, f) => s + (Number(f.baselinePromoted) || 0), 0);
+    const cumulative = baseline + sumEntries(school, 'I', 'OP', dateTo);
+    return { target, cumulative, lastYear: null };
+  }
+  const rows = STATE.targets.filter(t => t.school === school && t.metric === metric);
+  let target = 0, lastYear = 0, cumulative = 0;
+  rows.forEach(r => {
+    target += Number(r.target) || 0;
+    lastYear += Number(r.lastYear) || 0;
+    cumulative += (Number(r.baseline) || 0) + sumEntries(school, r.class, metric, dateTo);
+  });
+  return { target, cumulative, lastYear };
+}
+function computeMetricForClass(school, cls, metric, dateTo) {
+  if (metric === 'OP') return computeMetricForSchool(school, 'OP', dateTo);
+  const row = STATE.targets.find(t => t.school === school && t.class === cls && t.metric === metric);
+  const baseline = row ? Number(row.baseline) || 0 : 0;
+  const target = row ? Number(row.target) || 0 : 0;
+  const lastYear = row ? Number(row.lastYear) || 0 : 0;
+  const cumulative = baseline + sumEntries(school, cls, metric, dateTo);
+  return { target, cumulative, lastYear };
+}
+function enumerateDates(from, to) {
+  const out = [];
+  let d = new Date(from + 'T00:00:00');
+  const end = new Date(to + 'T00:00:00');
+  while (d <= end) { out.push(d.toISOString().slice(0, 10)); d.setDate(d.getDate() + 1); }
+  return out;
+}
+function defaultDateRange() {
+  const dates = STATE.entries.map(e => e.date).filter(Boolean);
+  const today = todayStr();
+  let from = dates.length ? dates.reduce((a, b) => a < b ? a : b) : today;
+  if (from > today) from = today;
+  return { from, to: today };
+}
+function buildTrend(metric, school, dateFrom, dateTo) {
+  const schools = school === 'all' ? schoolList() : [school];
+  let baseline = 0;
+  if (metric === 'OP') {
+    baseline = STATE.opFeeders.filter(f => schools.includes(f.destSchool)).reduce((s, f) => s + (Number(f.baselinePromoted) || 0), 0);
+  } else {
+    baseline = STATE.targets.filter(t => schools.includes(t.school) && t.metric === metric).reduce((s, t) => s + (Number(t.baseline) || 0), 0);
+  }
+  const relevant = STATE.entries.filter(e => schools.includes(e.school) && e.metric === metric && (metric !== 'OP' || e.class === 'I'));
+  const dates = enumerateDates(dateFrom, dateTo);
+  if (!dates.length) return [];
+  let running = baseline + relevant.filter(e => e.date < dates[0]).reduce((s, e) => s + (Number(e.count) || 0), 0);
+  return dates.map(d => {
+    running += relevant.filter(e => e.date === d).reduce((s, e) => s + (Number(e.count) || 0), 0);
+    return { date: d, value: running };
+  });
+}
+function destroyChart(key) { if (STATE.charts[key]) { STATE.charts[key].destroy(); delete STATE.charts[key]; } }
+
+const METRIC_LABELS = { NA: 'New Admission', FormSold: 'Form Sold', OP: 'Old Promoted (KG-2→Gr.1)', RTE: 'RTE', TC: 'Transfer Certificates' };
+const METRIC_COLORS = { NA: '#6e1423', FormSold: '#caa051', OP: '#2f7d52', RTE: '#3b6ea5', TC: '#b23a2f' };
+
+/* ---------------- HEADER ---------------- */
+function renderHeader() {
+  const el = document.getElementById('headerRight');
+  if (STATE.user) {
+    const schoolLabel = STATE.user.role === 'admin' ? 'HO Admin' : (STATE.user.school || '');
+    el.innerHTML = `
+      <div style="text-align:right;">
+        <div style="font-weight:700;">${esc(STATE.user.name)}</div>
+        <div style="font-size:11px;color:#e3c89a;">${esc(schoolLabel)}</div>
+      </div>
+      <button class="btn secondary" onclick="logout()">Logout</button>
+    `;
+  } else {
+    el.innerHTML = `<button class="btn" onclick="openLogin()">Log in</button>`;
+  }
+}
+
+/* ---------------- LOGIN MODAL ---------------- */
+function openLogin() { STATE.loginOpen = true; STATE.loginError = ''; renderModal(); }
+function closeLogin() { STATE.loginOpen = false; renderModal(); }
+function renderModal() {
+  const root = document.getElementById('modalRoot');
+  if (!STATE.loginOpen) { root.innerHTML = ''; return; }
+  root.innerHTML = `
+    <div class="modal-backdrop" onclick="if(event.target===this) closeLogin()">
+      <div class="modal-card">
+        <button class="modal-close" onclick="closeLogin()">✕</button>
+        <h2 style="margin-top:0;">Log in</h2>
+        <p class="hint">Counsellors, student section staff, and admin all log in here.</p>
+        <form onsubmit="return doLogin(event)">
+          <label>Username</label>
+          <input id="loginUser" style="width:100%;margin-bottom:10px;" autofocus />
+          <label>Password</label>
+          <input id="loginPass" type="password" style="width:100%;margin-bottom:10px;" />
+          ${STATE.loginError ? `<div class="error-text">${esc(STATE.loginError)}</div>` : ''}
+          <button class="btn" style="width:100%;margin-top:6px;" type="submit">Log in</button>
+        </form>
+      </div>
+    </div>
+  `;
+}
+async function doLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const data = await apiGet({ action: 'login', username, password });
+  if (!data.ok) { STATE.loginError = data.error || 'Login failed.'; renderModal(); return false; }
+  STATE.user = data.user;
+  STATE.loginOpen = false;
+  renderModal();
+  renderHeader();
+  renderApp();
+  return false;
+}
+function logout() { STATE.user = null; renderHeader(); renderApp(); }
+
+/* ---------------- FILTER BAR (shared by public + admin overview) ---------------- */
+function filterBarHtml(idPrefix) {
+  const schools = schoolList();
+  return `
+    <div class="row" style="margin-bottom:6px;">
+      <div>
+        <label>School</label>
+        <select id="${idPrefix}School" onchange="updateFilter('${idPrefix}')">
+          <option value="all" ${STATE.filters.school === 'all' ? 'selected' : ''}>All schools</option>
+          ${schools.map(s => `<option value="${esc(s)}" ${STATE.filters.school === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label>Metric</label>
+        <select id="${idPrefix}Metric" onchange="updateFilter('${idPrefix}')">
+          <option value="all" ${STATE.filters.metric === 'all' ? 'selected' : ''}>All metrics</option>
+          ${Object.keys(METRIC_LABELS).map(m => `<option value="${m}" ${STATE.filters.metric === m ? 'selected' : ''}>${METRIC_LABELS[m]}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label>From</label>
+        <input type="date" id="${idPrefix}From" value="${STATE.filters.dateFrom}" onchange="updateFilter('${idPrefix}')" />
+      </div>
+      <div>
+        <label>To</label>
+        <input type="date" id="${idPrefix}To" value="${STATE.filters.dateTo}" onchange="updateFilter('${idPrefix}')" />
+      </div>
+    </div>
+  `;
+}
+function updateFilter(idPrefix) {
+  STATE.filters.school = document.getElementById(idPrefix + 'School').value;
+  STATE.filters.metric = document.getElementById(idPrefix + 'Metric').value;
+  STATE.filters.dateFrom = document.getElementById(idPrefix + 'From').value;
+  STATE.filters.dateTo = document.getElementById(idPrefix + 'To').value;
+  renderApp();
+}
+
+/* ---------------- DASHBOARD (used by public view + admin overview tab) ---------------- */
+function dashboardHtml() {
+  const f = STATE.filters;
+  const schools = f.school === 'all' ? schoolList() : [f.school];
+
+  let body = `<div class="card"><h2>Live Admission Status</h2><p class="hint">Filter by school, metric, and date range.</p>${filterBarHtml('dash')}</div>`;
+
+  if (f.metric === 'all') {
+    body += `<div class="card"><h2>All metrics, by school</h2><div class="chart-wrap"><canvas id="chartAllMetrics"></canvas></div>${allMetricsTableHtml(schools, f.dateTo)}</div>`;
+  } else {
+    body += `<div class="card"><h2>${METRIC_LABELS[f.metric]} — Target vs Achieved</h2><div class="chart-wrap"><canvas id="chartBar"></canvas></div></div>`;
+    body += `<div class="card"><h2>${METRIC_LABELS[f.metric]} — Cumulative trend</h2><div class="chart-wrap"><canvas id="chartTrend"></canvas></div></div>`;
+    body += `<div class="card"><h2>Detail by school</h2>${singleMetricTableHtml(schools, f.metric, f.dateTo)}</div>`;
+  }
+  return body;
+}
+function allMetricsTableHtml(schools, dateTo) {
+  let rows = '';
+  schools.forEach(s => {
+    const cells = Object.keys(METRIC_LABELS).map(m => {
+      const r = computeMetricForSchool(s, m, dateTo);
+      return `<td class="num">${fmt(r.cumulative)}</td>`;
+    }).join('');
+    rows += `<tr><td>${esc(s)}</td>${cells}</tr>`;
+  });
+  return `<table><thead><tr><th>School</th>${Object.keys(METRIC_LABELS).map(m => `<th class="num">${METRIC_LABELS[m]}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+function singleMetricTableHtml(schools, metric, dateTo) {
+  let rows = '';
+  let tT = 0, tC = 0, tL = 0;
+  schools.forEach(s => {
+    const r = computeMetricForSchool(s, metric, dateTo);
+    const gap = r.target - r.cumulative;
+    tT += r.target; tC += r.cumulative; tL += (r.lastYear || 0);
+    rows += `<tr><td>${esc(s)}</td><td class="num">${fmt(r.target)}</td><td class="num">${fmt(r.cumulative)}</td>
+      <td class="num">${r.lastYear == null ? '—' : fmt(r.lastYear)}</td>
+      <td class="num ${gap <= 0 ? 'pos' : 'neg'}">${gap <= 0 ? '+' + fmt(-gap) : '-' + fmt(gap)}</td></tr>`;
+  });
+  const totalGap = tT - tC;
+  rows += `<tr class="total"><td>Total</td><td class="num">${fmt(tT)}</td><td class="num">${fmt(tC)}</td><td class="num">${fmt(tL)}</td>
+    <td class="num ${totalGap <= 0 ? 'pos' : 'neg'}">${totalGap <= 0 ? '+' + fmt(-totalGap) : '-' + fmt(totalGap)}</td></tr>`;
+  const label = metric === 'OP' ? 'KG-2 batch (denominator)' : 'Target';
+  return `<table><thead><tr><th>School</th><th class="num">${label}</th><th class="num">Achieved</th><th class="num">Last year</th><th class="num">Gap</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function renderDashboardCharts() {
+  const f = STATE.filters;
+  const schools = f.school === 'all' ? schoolList() : [f.school];
+  destroyChart('all'); destroyChart('bar'); destroyChart('trend');
+
+  if (f.metric === 'all') {
+    const canvas = document.getElementById('chartAllMetrics');
+    if (!canvas) return;
+    const datasets = Object.keys(METRIC_LABELS).map(m => ({
+      label: METRIC_LABELS[m],
+      backgroundColor: METRIC_COLORS[m],
+      data: schools.map(s => computeMetricForSchool(s, m, f.dateTo).cumulative)
+    }));
+    STATE.charts.all = new Chart(canvas, { type: 'bar', data: { labels: schools, datasets }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } } });
+    return;
+  }
+
+  const barCanvas = document.getElementById('chartBar');
+  if (barCanvas) {
+    const targetLabel = f.metric === 'OP' ? 'KG-2 batch' : 'Target';
+    STATE.charts.bar = new Chart(barCanvas, {
+      type: 'bar',
+      data: {
+        labels: schools,
+        datasets: [
+          { label: targetLabel, backgroundColor: '#e3dccf', data: schools.map(s => computeMetricForSchool(s, f.metric, f.dateTo).target) },
+          { label: 'Achieved', backgroundColor: METRIC_COLORS[f.metric], data: schools.map(s => computeMetricForSchool(s, f.metric, f.dateTo).cumulative) }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    });
+  }
+  const trendCanvas = document.getElementById('chartTrend');
+  if (trendCanvas) {
+    const range = (f.dateFrom && f.dateTo) ? { from: f.dateFrom, to: f.dateTo } : defaultDateRange();
+    const series = buildTrend(f.metric, f.school, range.from, range.to);
+    STATE.charts.trend = new Chart(trendCanvas, {
+      type: 'line',
+      data: { labels: series.map(p => p.date), datasets: [{ label: METRIC_LABELS[f.metric], data: series.map(p => p.value), borderColor: METRIC_COLORS[f.metric], backgroundColor: METRIC_COLORS[f.metric] + '33', fill: true, tension: 0.25 }] },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+    });
+  }
+}
+
+/* ---------------- COUNSELLOR VIEW ---------------- */
+function counsellorHtml() {
+  const school = STATE.user.school;
+  const classes = STATE.schoolClasses[school] || [];
+  const opHere = opApplicableSchools().includes(school);
+  const date = STATE.entryDate || todayStr();
+  let grid = classes.map(cn => {
+    const naVal = entryValue(school, cn, 'NA', date);
+    const fsVal = entryValue(school, cn, 'FormSold', date);
+    const showOP = opHere && cn === 'I';
+    const opVal = showOP ? entryValue(school, cn, 'OP', date) : '';
+    return `
+      <div class="class-box">
+        <div class="cn">${esc(cn)}</div>
+        <div class="field-pair">
+          <div><span class="fl">NA</span><input type="number" min="0" id="na_${cssId(cn)}" value="${naVal}" /></div>
+          <div><span class="fl">Form Sold</span><input type="number" min="0" id="fs_${cssId(cn)}" value="${fsVal}" /></div>
+        </div>
+        ${showOP ? `<div class="field-pair"><div><span class="fl">OP (KG-2→Gr.1)</span><input type="number" min="0" id="op_${cssId(cn)}" value="${opVal}" /></div></div>` : ''}
+      </div>`;
+  }).join('');
+
+  let body = `
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div><h2>${esc(school)}</h2><p class="hint">Enter today's New Admission and Form Sold counts per class. OP applies to Grade 1 only.</p></div>
+        <div><label>Date</label><input type="date" id="entryDate" value="${date}" max="${todayStr()}" onchange="changeEntryDate()" /></div>
+      </div>
+      <div class="class-grid">${grid}</div>
+      <button class="btn" onclick="saveCounsellorEntries()">Save today's entry</button>
+    </div>
+    <div class="card">
+      <h2>Where ${esc(school)} stands</h2>
+      ${filterBarHtmlMetricOnly('selfMetric')}
+      <div class="chart-wrap"><canvas id="chartSelfBar"></canvas></div>
+      ${singleMetricTableHtml([school], STATE.filters.metric === 'all' ? 'NA' : STATE.filters.metric, STATE.filters.dateTo)}
+    </div>
+  `;
+  return body;
+}
+function filterBarHtmlMetricOnly(idPrefix) {
+  const metric = ['NA','FormSold','OP'].includes(STATE.filters.metric) ? STATE.filters.metric : 'NA';
+  return `<div class="row" style="margin-bottom:10px;"><div><label>Metric</label>
+    <select id="${idPrefix}" onchange="STATE.filters.metric=this.value; renderApp();">
+      <option value="NA" ${metric==='NA'?'selected':''}>New Admission</option>
+      <option value="FormSold" ${metric==='FormSold'?'selected':''}>Form Sold</option>
+      <option value="OP" ${metric==='OP'?'selected':''}>Old Promoted</option>
+    </select></div></div>`;
+}
+function cssId(s) { return String(s).replace(/[^a-zA-Z0-9]/g, '_'); }
+function entryValue(school, cn, metric, date) {
+  const e = STATE.entries.find(x => x.school === school && x.class === cn && x.metric === metric && x.date === date);
+  return e ? e.count : '';
+}
+function changeEntryDate() { STATE.entryDate = document.getElementById('entryDate').value; renderApp(); }
+async function saveCounsellorEntries() {
+  const school = STATE.user.school;
+  const classes = STATE.schoolClasses[school] || [];
+  const date = STATE.entryDate || todayStr();
+  const opHere = opApplicableSchools().includes(school);
+  const jobs = [];
+  classes.forEach(cn => {
+    const na = document.getElementById('na_' + cssId(cn)).value;
+    const fs = document.getElementById('fs_' + cssId(cn)).value;
+    if (na !== '') jobs.push(persistEntry(school, cn, 'NA', date, na));
+    if (fs !== '') jobs.push(persistEntry(school, cn, 'FormSold', date, fs));
+    if (opHere && cn === 'I') {
+      const opEl = document.getElementById('op_' + cssId(cn));
+      if (opEl && opEl.value !== '') jobs.push(persistEntry(school, cn, 'OP', date, opEl.value));
+    }
+  });
+  await Promise.all(jobs);
+  showToast("Saved " + date + "'s entry.");
+  renderApp();
+}
+async function persistEntry(school, cls, metric, date, value) {
+  const count = Math.max(0, Number(value) || 0);
+  await apiPost({ action: 'saveEntry', school, class: cls, metric, date, count, enteredBy: STATE.user.name, role: STATE.user.role });
+  const idx = STATE.entries.findIndex(e => e.school === school && e.class === cls && e.metric === metric && e.date === date);
+  const rec = { school, class: cls, metric, date, count, enteredBy: STATE.user.name, role: STATE.user.role };
+  if (idx > -1) STATE.entries[idx] = rec; else STATE.entries.push(rec);
+}
+
+/* ---------------- STUDENT SECTION VIEW ---------------- */
+function studentSectionHtml() {
+  const school = STATE.user.school;
+  const classes = STATE.schoolClasses[school] || [];
+  const rteClasses = rteApplicableClasses(school);
+  const date = STATE.entryDate || todayStr();
+  const rteGrid = rteClasses.map(cn => `
+    <div class="class-box"><div class="cn">${esc(cn)}</div>
+      <input type="number" min="0" id="rte_${cssId(cn)}" value="${entryValue(school, cn, 'RTE', date)}" /></div>
+  `).join('');
+
+  return `
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div><h2>${esc(school)} — RTE admissions</h2><p class="hint">RTE applies to Grade 1 only.</p></div>
+        <div><label>Date</label><input type="date" id="entryDate" value="${date}" max="${todayStr()}" onchange="changeEntryDate()" /></div>
+      </div>
+      <div class="class-grid">${rteGrid || '<p class="small-muted">No RTE-applicable class configured for this school.</p>'}</div>
+      <button class="btn" onclick="saveRTE()">Save RTE entry</button>
+    </div>
+
+    <div class="card">
+      <h2>Log a Transfer Certificate</h2>
+      <p class="hint">Each TC is logged individually, since each one has its own reason.</p>
+      <div class="row">
+        <div><label>Class</label><select id="tcClass">${classes.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select></div>
+        <div><label>Reason</label><select id="tcReason">${STATE.tcReasons.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('')}</select></div>
+        <div><label>Count</label><input type="number" min="1" id="tcCount" value="1" /></div>
+        <div><label>Date</label><input type="date" id="tcDate" value="${todayStr()}" max="${todayStr()}" /></div>
+        <button class="btn" onclick="logTC()">Log TC</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Recent TCs — ${esc(school)}</h2>
+      ${tcLogTableHtml(school)}
+    </div>
+  `;
+}
+function tcLogTableHtml(school) {
+  const rows = STATE.entries.filter(e => e.school === school && e.metric === 'TC').sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 25);
+  if (!rows.length) return '<p class="small-muted">No TCs logged yet.</p>';
+  return `<table><thead><tr><th>Date</th><th>Class</th><th class="num">Count</th><th>Reason</th><th>By</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td>${esc(r.date)}</td><td>${esc(r.class)}</td><td class="num">${fmt(r.count)}</td><td>${esc(r.reason)}</td><td>${esc(r.enteredBy)}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+async function saveRTE() {
+  const school = STATE.user.school;
+  const date = STATE.entryDate || todayStr();
+  const jobs = rteApplicableClasses(school).map(cn => {
+    const el = document.getElementById('rte_' + cssId(cn));
+    if (!el || el.value === '') return null;
+    return persistEntry(school, cn, 'RTE', date, el.value);
+  }).filter(Boolean);
+  await Promise.all(jobs);
+  showToast("Saved " + date + "'s RTE entry.");
+  renderApp();
+}
+async function logTC() {
+  const school = STATE.user.school;
+  const cls = document.getElementById('tcClass').value;
+  const reason = document.getElementById('tcReason').value;
+  const count = Math.max(1, Number(document.getElementById('tcCount').value) || 1);
+  const date = document.getElementById('tcDate').value || todayStr();
+  await apiPost({ action: 'saveEntry', school, class: cls, metric: 'TC', date, count, reason, enteredBy: STATE.user.name, role: STATE.user.role });
+  STATE.entries.push({ school, class: cls, metric: 'TC', date, count, reason, enteredBy: STATE.user.name, role: STATE.user.role });
+  showToast('TC logged.');
+  renderApp();
+}
+
+/* ---------------- ADMIN VIEW ---------------- */
+function adminHtml() {
+  const tabs = [['overview', 'Overview'], ['logins', 'Logins'], ['targets', 'Targets & Baselines'], ['opfeeders', 'OP Feeders'], ['log', 'Raw Log']];
+  let html = `<div class="tabs">${tabs.map(([id, label]) => `<button class="tab-btn ${STATE.adminTab === id ? 'active' : ''}" onclick="setAdminTab('${id}')">${label}</button>`).join('')}</div>`;
+  if (STATE.adminTab === 'overview') html += dashboardHtml();
+  if (STATE.adminTab === 'logins') html += loginsHtml();
+  if (STATE.adminTab === 'targets') html += targetsHtml();
+  if (STATE.adminTab === 'opfeeders') html += opFeedersHtml();
+  if (STATE.adminTab === 'log') html += rawLogHtml();
+  return html;
+}
+function setAdminTab(id) { STATE.adminTab = id; renderApp(); }
+
+let CREDENTIALS_CACHE = [];
+async function loginsHtml() {
+  return `<div class="card" id="loginsCard"><h2>Logins</h2><p class="small-muted">Loading…</p></div>`;
+}
+async function loadAndRenderLogins() {
+  const data = await apiGet({ action: 'credentials' });
+  CREDENTIALS_CACHE = data.credentials || [];
+  const card = document.getElementById('loginsCard');
+  if (!card) return;
+  const schools = schoolList();
+  const rows = CREDENTIALS_CACHE.map(c => `
+    <tr>
+      <td>${esc(c.name)}</td><td>${esc(c.username)}</td>
+      <td>${c.role === 'admin' ? 'Admin' : c.role === 'counsellor' ? 'Counsellor' : 'Student Section'}</td>
+      <td>${esc(c.school || '—')}</td>
+      <td><button class="reveal-btn" onclick="this.textContent=this.textContent==='••••••'?'${esc(c.password)}':'••••••'">••••••</button></td>
+      <td><button class="btn danger" onclick="removeCred('${esc(c.id)}')">Remove</button></td>
+    </tr>`).join('');
+  card.innerHTML = `
+    <h2>Logins</h2>
+    <table><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>School</th><th>Password</th><th></th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="6" class="small-muted">No logins yet.</td></tr>'}</tbody></table>
+    <h2 style="margin-top:20px;">Add a login</h2>
+    <div class="row">
+      <div><label>Name</label><input id="newName" /></div>
+      <div><label>Username</label><input id="newUser" /></div>
+      <div><label>Password</label><input id="newPass" /></div>
+      <div><label>Role</label><select id="newRole" onchange="toggleSchoolField()">
+        <option value="counsellor">Counsellor</option>
+        <option value="student_section">Student Section</option>
+        <option value="admin">Admin</option>
+      </select></div>
+      <div id="schoolFieldWrap"><label>School</label><select id="newSchool">${schools.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('')}</select></div>
+      <button class="btn" onclick="addCred()">Add login</button>
+    </div>
+  `;
+}
+function toggleSchoolField() {
+  const role = document.getElementById('newRole').value;
+  document.getElementById('schoolFieldWrap').style.display = role === 'admin' ? 'none' : 'block';
+}
+async function addCred() {
+  const name = document.getElementById('newName').value.trim();
+  const username = document.getElementById('newUser').value.trim();
+  const password = document.getElementById('newPass').value;
+  const role = document.getElementById('newRole').value;
+  const school = role === 'admin' ? '' : document.getElementById('newSchool').value;
+  if (!name || !username || !password) { showToast('Fill in name, username and password.'); return; }
+  const res = await apiPost({ action: 'addCredential', name, username, password, role, school });
+  if (!res.ok) { showToast(res.error || 'Could not add login.'); return; }
+  showToast('Login added.');
+  loadAndRenderLogins();
+}
+async function removeCred(id) {
+  await apiPost({ action: 'removeCredential', id });
+  showToast('Login removed.');
+  loadAndRenderLogins();
+}
+
+function targetsHtml() {
+  const schools = schoolList();
+  const school = STATE.targetsSchool || schools[0];
+  const metric = STATE.targetsMetric || 'NA';
+  const classes = STATE.schoolClasses[school] || [];
+  const rows = classes.map(cn => {
+    const row = STATE.targets.find(t => t.school === school && t.class === cn && t.metric === metric) || { target: 0, baseline: 0, lastYear: 0 };
+    return `<tr>
+      <td>${esc(cn)}</td>
+      <td><input type="number" id="tg_${cssId(cn)}" value="${Number(row.target) || 0}" /></td>
+      <td><input type="number" id="bl_${cssId(cn)}" value="${Number(row.baseline) || 0}" /></td>
+      <td><input type="number" id="ly_${cssId(cn)}" value="${Number(row.lastYear) || 0}" /></td>
+    </tr>`;
+  }).join('');
+  return `
+    <div class="card">
+      <h2>Targets & Baselines</h2>
+      <p class="hint">Baseline = already counted before this app went live. Last year = same checkpoint last season.</p>
+      <div class="row">
+        <div><label>School</label><select onchange="STATE.targetsSchool=this.value; renderApp();">
+          ${schools.map(s => `<option value="${esc(s)}" ${s === school ? 'selected' : ''}>${esc(s)}</option>`).join('')}
+        </select></div>
+        <div><label>Metric</label><select onchange="STATE.targetsMetric=this.value; renderApp();">
+          ${['NA', 'FormSold', 'RTE', 'TC'].map(m => `<option value="${m}" ${m === metric ? 'selected' : ''}>${METRIC_LABELS[m]}</option>`).join('')}
+        </select></div>
+      </div>
+      <table style="margin-top:12px;"><thead><tr><th>Class</th><th>Target</th><th>Baseline</th><th>Last year</th></tr></thead><tbody>${rows}</tbody></table>
+      <button class="btn" style="margin-top:12px;" onclick="saveTargetsTab('${esc(school)}','${esc(metric)}')">Save changes</button>
+    </div>
+  `;
+}
+async function saveTargetsTab(school, metric) {
+  const classes = STATE.schoolClasses[school] || [];
+  const rows = classes.map(cn => [
+    school, cn, metric,
+    Number(document.getElementById('tg_' + cssId(cn)).value) || 0,
+    Number(document.getElementById('bl_' + cssId(cn)).value) || 0,
+    Number(document.getElementById('ly_' + cssId(cn)).value) || 0
+  ]);
+  await apiPost({ action: 'saveTargets', rows });
+  rows.forEach(r => {
+    const idx = STATE.targets.findIndex(t => t.school === r[0] && t.class === r[1] && t.metric === r[2]);
+    const rec = { school: r[0], class: r[1], metric: r[2], target: r[3], baseline: r[4], lastYear: r[5] };
+    if (idx > -1) STATE.targets[idx] = rec; else STATE.targets.push(rec);
+  });
+  showToast('Targets updated.');
+  renderApp();
+}
+
+function opFeedersHtml() {
+  const rows = STATE.opFeeders.map((f, i) => `
+    <tr>
+      <td>${esc(f.destSchool)}</td><td>${esc(f.feederLabel)}</td>
+      <td><input type="number" id="kg_${i}" value="${Number(f.kg2Batch) || 0}" /></td>
+      <td><input type="number" id="bp_${i}" value="${Number(f.baselinePromoted) || 0}" /></td>
+      <td><button class="btn secondary" onclick="saveFeederRow(${i})">Save</button></td>
+    </tr>`).join('');
+  return `
+    <div class="card">
+      <h2>OP Feeders — KG-2 → Grade 1 conversion</h2>
+      <p class="hint">KG-2 batch = last year's KG-2 cohort size at the feeder. Baseline promoted = how many had already converted before this app went live.</p>
+      <table><thead><tr><th>Destination school</th><th>Feeder</th><th>KG-2 batch</th><th>Baseline promoted</th><th></th></tr></thead><tbody>${rows}</tbody></table>
+    </div>
+  `;
+}
+async function saveFeederRow(i) {
+  const f = STATE.opFeeders[i];
+  const row = [f.destSchool, f.feederLabel, Number(document.getElementById('kg_' + i).value) || 0, Number(document.getElementById('bp_' + i).value) || 0];
+  await apiPost({ action: 'saveOPFeeder', row });
+  STATE.opFeeders[i].kg2Batch = row[2];
+  STATE.opFeeders[i].baselinePromoted = row[3];
+  showToast('Feeder updated.');
+}
+
+function rawLogHtml() {
+  const school = STATE.logSchool || 'all';
+  const metric = STATE.logMetric || 'all';
+  const rows = STATE.entries
+    .filter(e => (school === 'all' || e.school === school) && (metric === 'all' || e.metric === metric))
+    .sort((a, b) => a.date < b.date ? 1 : -1)
+    .slice(0, 200);
+  return `
+    <div class="card">
+      <h2>Raw entry log</h2>
+      <div class="row">
+        <div><label>School</label><select onchange="STATE.logSchool=this.value; renderApp();">
+          <option value="all">All</option>${schoolList().map(s => `<option value="${esc(s)}" ${s === school ? 'selected' : ''}>${esc(s)}</option>`).join('')}
+        </select></div>
+        <div><label>Metric</label><select onchange="STATE.logMetric=this.value; renderApp();">
+          <option value="all">All</option>${Object.keys(METRIC_LABELS).map(m => `<option value="${m}" ${m === metric ? 'selected' : ''}>${METRIC_LABELS[m]}</option>`).join('')}
+        </select></div>
+      </div>
+      <table style="margin-top:10px;"><thead><tr><th>Date</th><th>School</th><th>Class</th><th>Metric</th><th class="num">Count</th><th>Reason</th><th>By</th><th></th></tr></thead>
+      <tbody>${rows.map(r => `<tr><td>${esc(r.date)}</td><td>${esc(r.school)}</td><td>${esc(r.class)}</td><td>${METRIC_LABELS[r.metric] || esc(r.metric)}</td>
+        <td class="num">${fmt(r.count)}</td><td>${esc(r.reason || '')}</td><td>${esc(r.enteredBy || '')}</td>
+        <td>${r.id ? `<button class="btn danger" onclick="removeLogEntry('${esc(r.id)}')">✕</button>` : ''}</td></tr>`).join('') || '<tr><td colspan="8" class="small-muted">No entries.</td></tr>'}</tbody></table>
+    </div>
+  `;
+}
+async function removeLogEntry(id) {
+  await apiPost({ action: 'removeEntry', id });
+  STATE.entries = STATE.entries.filter(e => e.id !== id);
+  showToast('Entry removed.');
+  renderApp();
+}
+
+/* ---------------- ROOT RENDER ---------------- */
+function renderApp() {
+  const app = document.getElementById('app');
+  if (STATE.apiUrl.indexOf('PASTE_YOUR') === 0) {
+    app.innerHTML = `<div class="card setup-banner"><strong>Setup needed:</strong> open this file and replace <code>STATE.apiUrl</code> at the top of the script with your deployed Apps Script Web App URL.</div>`;
+    return;
+  }
+  if (!STATE.loaded) { app.innerHTML = `<div class="card">Loading…</div>`; return; }
+
+  if (!STATE.user) {
+    app.innerHTML = `
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <p style="margin:0;" class="small-muted">Live admission status across all schools — view only.</p>
+        <button class="btn link" onclick="openLogin()">Log in to enter today's numbers or manage settings</button>
+      </div>
+      ${dashboardHtml()}
+    `;
+    renderDashboardCharts();
+    return;
+  }
+  if (STATE.user.role === 'counsellor') { app.innerHTML = counsellorHtml(); renderSelfCharts(); return; }
+  if (STATE.user.role === 'student_section') { app.innerHTML = studentSectionHtml(); return; }
+  if (STATE.user.role === 'admin') {
+    app.innerHTML = adminHtml();
+    if (STATE.adminTab === 'overview') renderDashboardCharts();
+    if (STATE.adminTab === 'logins') loadAndRenderLogins();
+    return;
+  }
+}
+function renderSelfCharts() {
+  destroyChart('selfBar');
+  const school = STATE.user.school;
+  const metric = ['NA','FormSold','OP'].includes(STATE.filters.metric) ? STATE.filters.metric : 'NA';
+  const canvas = document.getElementById('chartSelfBar');
+  if (!canvas) return;
+  const r = computeMetricForSchool(school, metric, STATE.filters.dateTo);
+  STATE.charts.selfBar = new Chart(canvas, {
+    type: 'bar',
+    data: { labels: [metric === 'OP' ? 'KG-2 batch' : 'Target', 'Achieved'], datasets: [{ label: METRIC_LABELS[metric], backgroundColor: [ '#e3dccf', METRIC_COLORS[metric] ], data: [r.target, r.cumulative] }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  });
+}
+
+/* ---------------- INIT ---------------- */
+(async function init() {
+  renderHeader();
+  if (STATE.apiUrl.indexOf('PASTE_YOUR') === 0) { renderApp(); return; }
+  const dr = null;
+  try {
+    await loadBootstrap();
+    const range = defaultDateRange();
+    STATE.filters.dateFrom = range.from;
+    STATE.filters.dateTo = range.to;
+  } catch (err) {
+    document.getElementById('app').innerHTML = `<div class="card setup-banner">Could not load data: ${esc(err.message)}. Check that the Apps Script URL is correct and deployed with "Anyone" access.</div>`;
+    return;
+  }
+  renderApp();
+})();
+</script>
+</body>
+</html>
